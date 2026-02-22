@@ -1,14 +1,18 @@
 # Accesify AI — Chrome Extension
 
-A production-quality Chrome extension providing AI-powered accessibility tools for every website.
+Accesify AI is a Chrome extension that makes websites easier to use for everyone. It adds an accessibility layer on top of any page, letting you change how content looks, sounds, and behaves so browsing feels more comfortable and inclusive.
 
 ## Features
 
-- 📖 **Reading Mode** — Removes clutter, centers text, highlights reading line
-- 🔤 **Dyslexia Mode** — Lexend/OpenDyslexic/Atkinson fonts with optimized spacing
-- 👁️ **Vision Filters** — Dark mode, high contrast, colorblind simulations
-- 🎤 **Voice Navigation** — Hands-free browsing with speech commands
-- 🤖 **AI Alt Text** — Auto-generates descriptions for images without alt text
+- **Reading Mode** — Removes clutter, centers text, and adds a reading guide line
+
+- **Dyslexia Mode** — Switch to easier-to-read fonts with better spacing
+
+- **Vision Filters** — Dark mode, contrast boost, and color-blind viewing modes
+
+- **Voice Navigation** — Control pages hands-free with speech commands
+
+- **AI Alt Text** — Generates descriptions for images that don’t have them
 
 ## Installation
 
@@ -17,7 +21,7 @@ A production-quality Chrome extension providing AI-powered accessibility tools f
 3. Enable **Developer mode** (top right toggle)
 4. Click **Load unpacked**
 5. Select the `accesify-ai` folder
-6. The extension icon appears in your toolbar — click to open!
+6. The extension icon appears in your toolbar; click to open!
 
 ## Voice Commands
 
@@ -58,9 +62,21 @@ accesify-ai/
 - **Content Script messaging** — clean popup ↔ page communication
 - **CSS injection** — all page styles are scoped and reversible
 
-## Production Notes
+## How It Works
 
-For the AI Alt Text feature in a production environment:
-- Replace the heuristic engine in `ai.js` with a call to an AI vision API (e.g., Google Cloud Vision, OpenAI GPT-4V)
-- Add your API key management via background service worker
-- Implement request batching and caching for performance
+Accesify AI is built using plain HTML, CSS, and JavaScript with Chrome’s Manifest V3 extension system.
+Each feature runs in its own module, so everything stays organized and fast. Settings are saved using Chrome storage, and scripts communicate cleanly between the popup and the webpage.
+
+## Future Improvements
+
+- Smarter AI text simplification
+
+- More voice commands
+
+- Support for other browsers (ex: Microsoft Edge, and Firefox)
+
+- Sync settings across devices
+
+## Why This Project Exists
+
+Many websites still aren’t designed with accessibility in mind. Accesify AI helps fix that by letting users customize any page instantly. No redesigning required.
