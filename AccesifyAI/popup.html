@@ -4,24 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Accesify AI</title>
-  <!--
-    P5: Fonts self-hosted to avoid FOUT on popup open.
-    The Google Fonts links have been removed. DM Sans & DM Mono are loaded
-    via @font-face in popup.css pointing at bundled WOFF2 files, with a
-    system-font fallback stack so the UI is instantly readable either way.
-  -->
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
 
-  <!-- A7: sr-only h1 establishes correct heading hierarchy (h1 → h2s below) -->
   <h1 class="sr-only">Accesify AI Accessibility Tools</h1>
 
   <!-- Header -->
   <header class="header">
     <div class="header-brand">
       <div class="brand-icon" aria-hidden="true">
-        <!-- A12: aria-hidden on all decorative SVGs -->
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <circle cx="12" cy="12" r="3" fill="currentColor"/>
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" fill="currentColor" opacity="0.4"/>
@@ -33,7 +25,6 @@
         <span class="brand-tag">AI</span>
       </div>
     </div>
-    <!-- A10: aria-live region so screen readers announce status changes -->
     <div class="header-status" aria-live="polite" aria-atomic="true">
       <div class="status-dot" id="statusDot" aria-hidden="true"></div>
       <span class="status-label" id="statusLabel">Ready</span>
@@ -55,11 +46,7 @@
           <h2 class="section-title">Reading Mode</h2>
           <p class="section-desc" id="readingModeDesc">Remove clutter, center text</p>
         </div>
-        <!--
-          A2: Toggle label wraps a sr-only text node so the checkbox has a
-          meaningful accessible name independent of aria-label on the label itself.
-          A5: aria-expanded reflects collapsible panel state (managed by popup.js).
-        -->
+
         <label class="toggle">
           <input type="checkbox" id="readingMode"
                  aria-describedby="readingModeDesc"
@@ -71,10 +58,8 @@
           <span class="sr-only">Enable Reading Mode</span>
         </label>
       </div>
-      <!-- A5: aria-hidden="true" initial state; removed when panel opens -->
       <div class="section-controls" id="readingControls" aria-hidden="true">
         <div class="control-row">
-          <!-- A1: <label for="…"> properly associates label with range input -->
           <label for="fontSize" class="control-label">Font Size</label>
           <div class="slider-group">
             <input type="range" class="slider" id="fontSize"
@@ -131,10 +116,7 @@
         </label>
       </div>
       <div class="section-controls" id="dyslexiaControls" aria-hidden="true">
-        <!--
-          A4: Font buttons use aria-pressed to expose selection state to screen readers.
-          Initial values set here; popup.js keeps them in sync.
-        -->
+
         <div class="chip-group" role="group" aria-label="Dyslexia font selection">
           <button class="chip active" data-font="lexend" id="fontLexend" aria-pressed="true">Lexend</button>
           <button class="chip" data-font="opendyslexic" id="fontOpenDyslexic" aria-pressed="false">OpenDyslexic</button>
@@ -169,11 +151,7 @@
           <p class="section-desc">Contrast, dark, colorblind</p>
         </div>
       </div>
-      <!--
-        A3: radiogroup + role="radio" + aria-checked pattern so screen readers
-        correctly announce "Normal, selected, 1 of 6" etc.
-        popup.js updates aria-checked on every filter click.
-      -->
+
       <div class="filter-grid" role="radiogroup" aria-label="Vision filter selection">
         <button class="filter-btn" id="filterNone" data-filter="none" role="radio" aria-checked="true">
           <span class="filter-preview none-preview" aria-hidden="true"></span>
@@ -285,7 +263,6 @@
           Generate All
         </button>
       </div>
-      <!-- A11: role="status" + aria-live so progress updates are announced -->
       <div class="alt-results" id="altResults">
         <div class="alt-empty" id="altEmpty">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -325,10 +302,6 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <!--
-      AR3: Replaced window.confirm() (unreliable in extension popups) with a
-      two-click confirmation pattern managed entirely in popup.js.
-    -->
     <button class="footer-btn" id="resetAll">Reset All</button>
     <span class="footer-version">v1.0.1</span>
     <button class="footer-btn" id="helpBtn">Help</button>
