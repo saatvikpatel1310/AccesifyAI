@@ -1,18 +1,3 @@
-/**
- * Accesify AI — Content Script (v1.0.1 — post-audit fixes)
- *
- * Fixes applied:
- *  B3  — Overflow restoration falsy-check bug → 'in' operator sentinel check
- *  B4  — SpeechRecognition result index → iterate from event.resultIndex
- *  B5  — Non-standard document.body.style.zoom → font-size on <html>
- *  B7  — One-message-per-image loop → batch handler with progress events
- *  B8/S1 — innerHTML XSS in reading overlay → full attribute sanitizer
- *  P1  — Unthrottled mousemove → requestAnimationFrame throttle
- *  P2  — Synchronous large HTML parse → size guard
- *  P4  — Full DOM rebuild on slider update → CSS-only update path
- *  A6  — Dialog missing aria-modal, focus trap, Escape key, focus restore
- *  A8  — Close button has Escape hint in title
- */
 
 'use strict';
 
@@ -55,7 +40,6 @@ const READING_WRAPPER_ID = 'accesify-reading-wrapper';
 const READING_STYLE_ID   = 'accesify-reading-style';
 const READING_LINE_ID    = 'accesify-reading-line';
 
-// A6: Store the element that had focus before the overlay opened
 let _readingPrevFocus = null;
 
 function generateReadingCSS(options) {
@@ -80,7 +64,6 @@ function enableReadingMode(options = {}) {
     readingLine = false,
   } = options;
 
-  // B3: Use 'in' operator to distinguish "not set" from "set to empty string"
   if (!('accesifyOrigOverflow' in document.body.dataset)) {
     document.body.dataset.accesifyOrigOverflow = document.body.style.overflow;
   }
@@ -165,12 +148,10 @@ function enableReadingMode(options = {}) {
 
   const wrapper = document.createElement('div');
   wrapper.id = READING_WRAPPER_ID;
-  // A6: aria-modal prevents screen readers from escaping into background content
   wrapper.setAttribute('role', 'dialog');
   wrapper.setAttribute('aria-modal', 'true');
   wrapper.setAttribute('aria-label', 'Reading Mode');
 
-  // A8: Title gives keyboard users the Escape hint
   const closeBtn = document.createElement('button');
   closeBtn.className = 'accesify-reader-close';
   closeBtn.textContent = '✕ Exit Reading Mode';
@@ -179,7 +160,6 @@ function enableReadingMode(options = {}) {
 
   const inner = document.createElement('div');
   inner.className = 'accesify-reader-inner';
-  // B8/S1: Use sanitized content instead of raw innerHTML
   inner.innerHTML = sanitizeHTML(content);
 
   wrapper.appendChild(closeBtn);
@@ -188,11 +168,9 @@ function enableReadingMode(options = {}) {
 
   state.readingMode = true;
 
-  // A6: Store previous focus, then move focus into the dialog
   _readingPrevFocus = document.activeElement;
   closeBtn.focus();
 
-  // A6: Escape key closes the dialog
   wrapper.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       e.preventDefault();
@@ -200,7 +178,6 @@ function enableReadingMode(options = {}) {
     }
   });
 
-  // Reading line — P1: throttle with requestAnimationFrame
   if (readingLine) {
     const line = document.createElement('div');
     line.id = READING_LINE_ID;
@@ -227,18 +204,11 @@ function disableReadingMode() {
     delete document.body.dataset.accesifyOrigOverflow;
   }
   state.readingMode = false;
-  // A6: Restore focus to the element that was active before the overlay
   _readingPrevFocus?.focus();
   _readingPrevFocus = null;
 }
 
-/**
- * P4: Update only CSS, not the entire DOM.
- * The reading overlay's font-size and line-height are controlled by a
- * separate style block; we update just that block instead of destroying
- * and rebuilding the full overlay (which triggered extractContent() +
- * sanitizeHTML() on every slider move).
- */
+
 function updateReadingMode(options = {}) {
   if (!state.readingMode) return;
   const { fontSize = 18, lineHeight = 1.8, readingLine = false } = options;
@@ -292,21 +262,12 @@ function extractContent() {
     return paras.map(p => p.outerHTML).join('\n');
   }
 
-  // P2: Guard against gigantic pages
   const bodyHTML = document.body.innerHTML;
   return bodyHTML.length > 500_000 ? bodyHTML.slice(0, 500_000) : bodyHTML;
 }
 
-/**
- * B8/S1: Full HTML sanitizer.
- * Uses DOMParser so we work with real DOM nodes, then:
- *   1. Removes non-content elements (scripts, nav, ads, etc.)
- *   2. Strips all event handler attributes (onclick, onerror, etc.)
- *   3. Strips javascript: URLs from href/src/action attributes
- * Returns sanitized innerHTML string.
- */
+
 function sanitizeHTML(html) {
-  // P2: Size guard
   if (html.length > 500_000) html = html.slice(0, 500_000);
 
   const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -480,7 +441,6 @@ function enableVoiceNav() {
   recognition.interimResults = false;
   recognition.lang          = 'en-US';
 
-  // B4: Iterate from event.resultIndex to avoid reprocessing previous finals
   recognition.onresult = (event) => {
     for (let i = event.resultIndex; i < event.results.length; i++) {
       if (!event.results[i].isFinal) continue;
@@ -536,17 +496,13 @@ function handleVoiceCommand(cmd) {
   } else if (cmd.includes('go back')) {
     history.back();
   } else if (cmd.includes('zoom in')) {
-    // B5: Use font-size on <html> instead of non-standard zoom property
     adjustZoom(+0.1);
   } else if (cmd.includes('zoom out')) {
     adjustZoom(-0.1);
   }
 }
 
-/**
- * B5: Cross-browser zoom via html font-size (em cascade).
- * Clamps between 50% and 300%.
- */
+
 function adjustZoom(delta) {
   const current = parseFloat(
     document.documentElement.style.fontSize || '100%'
@@ -622,11 +578,7 @@ function scanImages() {
   };
 }
 
-/**
- * AR1: Now uses window.AccesifyAI.generateDescription() from ai.js,
- * which is loaded before this script (manifest order: ai.js, content.js).
- * Falls back to the inline heuristic if ai.js somehow isn't available.
- */
+
 function generateAltText(img) {
   if (window.AccesifyAI?.generateDescription) {
     return window.AccesifyAI.generateDescription(img);
@@ -646,11 +598,7 @@ function generateAltFallback(img) {
   return 'Image';
 }
 
-/**
- * B7: Process ALL images in one pass, emitting progress events back to the
- * popup via chrome.runtime.sendMessage. The popup no longer drives a
- * one-message-per-image loop with artificial delays.
- */
+
 async function generateAllAlt() {
   const total = imagesWithoutAlt.length;
   if (total === 0) return;
@@ -700,7 +648,6 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       break;
 
     case 'updateReading':
-      // P4: Calls the lightweight CSS-only update, not a full rebuild
       updateReadingMode(msg.options);
       sendResponse({ ok: true });
       break;
@@ -731,7 +678,6 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       break;
 
     case 'generateAllAlt':
-      // B7: Single batch message — handles all images internally
       generateAllAlt(); // async; progress emitted via runtime.sendMessage
       sendResponse({ ok: true, queued: imagesWithoutAlt.length });
       break;
