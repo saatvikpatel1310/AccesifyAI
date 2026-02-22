@@ -4,15 +4,15 @@ Accesify AI is a Chrome extension that makes websites easier to use for everyone
 
 ## Features
 
-- **Reading Mode** — Removes clutter, centers text, and adds a reading guide line
+- **Reading Mode** : Removes clutter, centers text, and adds a reading guide line
 
-- **Dyslexia Mode** — Switch to easier-to-read fonts with better spacing
+- **Dyslexia Mode** : Switch to easier-to-read fonts with better spacing
 
-- **Vision Filters** — Dark mode, contrast boost, and color-blind viewing modes
+- **Vision Filters** : Dark mode, contrast boost, and color-blind viewing modes
 
-- **Voice Navigation** — Control pages hands-free with speech commands
+- **Voice Navigation** : Control pages hands-free with speech commands
 
-- **AI Alt Text** — Generates descriptions for images that don’t have them
+- **AI Alt Text** : Generates descriptions for images that don’t have them
 
 ## Installation
 
@@ -56,11 +56,11 @@ accesify-ai/
 ## Architecture
 
 - **Manifest V3** compliant
-- **No external frameworks** — pure HTML/CSS/JS
-- **Modular design** — each feature is self-contained
-- **Chrome Storage API** — persists settings across sessions
-- **Content Script messaging** — clean popup ↔ page communication
-- **CSS injection** — all page styles are scoped and reversible
+- **No external frameworks** : pure HTML/CSS/JS
+- **Modular design** : each feature is self-contained
+- **Chrome Storage API** : persists settings across sessions
+- **Content Script messaging** : clean popup ↔ page communication
+- **CSS injection** : all page styles are scoped and reversible
 
 ## How It Works
 
