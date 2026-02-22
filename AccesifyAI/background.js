@@ -1,89 +1,89 @@
-/**
- * Accesify AI — Background Service Worker (v1.0.1 — post-audit fixes)
- *
- * Fixes applied:
- *  B6  — Merged two onInstalled listeners into one; contextMenus permission
- *         now declared in manifest.json so chrome.contextMenus is available.
- *  S3  — sendMessage error handler no longer silently swallows all errors.
- */
-
 'use strict';
 
-/* ─── Install / Update ─── */
-
-// B6: Single onInstalled listener handles both defaults and context menu setup
+/**
+ * Runs when extension is installed or updated.
+ * Sets default settings and creates context menu entry.
+ */
 chrome.runtime.onInstalled.addListener(({ reason }) => {
+
   if (reason === 'install') {
     chrome.storage.local.set({
       accesify: {
-        readingMode:    false,
-        dyslexiaMode:   false,
-        visionFilter:   'none',
-        voiceNav:       false,
-        fontSize:       18,
-        lineHeight:     180,
-        readingLine:    false,
-        dyslexiaFont:   'lexend',
-        letterSpacing:  2,
+        readingMode: false,
+        dyslexiaMode: false,
+        visionFilter: 'none',
+        voiceNav: false,
+        fontSize: 18,
+        lineHeight: 180,
+        readingLine: false,
+        dyslexiaFont: 'lexend',
+        letterSpacing: 2,
       },
     });
-    console.log('[Accesify] Extension installed. Defaults set.');
+
+    console.log('[Accesify] Installed — defaults initialized.');
   }
 
   if (reason === 'update') {
-    console.log('[Accesify] Extension updated to v1.0.1.');
+    console.log('[Accesify] Updated successfully.');
   }
 
-  // B6: contextMenus permission is now declared in manifest.json,
-  // so this call will succeed (no longer silently fails).
   chrome.contextMenus.create({
-    id:       'accesify-readmode',
-    title:    'Open in Reading Mode',
+    id: 'accesify-readmode',
+    title: 'Open in Reading Mode',
     contexts: ['page', 'selection'],
   }, () => {
-    // Suppress "already exists" error on reload during development
     if (chrome.runtime.lastError) {
       const msg = chrome.runtime.lastError.message || '';
       if (!msg.includes('already exists')) {
-        console.warn('[Accesify] contextMenus.create error:', msg);
+        console.warn('[Accesify] Context menu error:', msg);
       }
     }
   });
 });
 
-/* ─── Context Menu Click ─── */
 
+/**
+ * Handles context menu clicks.
+ * Sends message to content script to enable reading mode.
+ */
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === 'accesify-readmode' && tab?.id) {
     chrome.tabs.sendMessage(tab.id, {
-      action:  'setReadingMode',
+      action: 'setReadingMode',
       enabled: true,
-      options: { fontSize: 18, lineHeight: 1.8, readingLine: false },
-    }).catch(e => console.warn('[Accesify] Context menu sendMessage failed:', e.message));
+      options: {
+        fontSize: 18,
+        lineHeight: 1.8,
+        readingLine: false,
+      },
+    }).catch(e =>
+      console.warn('[Accesify] Message send failed:', e.message)
+    );
   }
 });
 
-/* ─── Message Relay ─── */
 
 /**
- * Relay voice command confirmations from content scripts to the popup.
- * The popup validates sender.tab is undefined to confirm origin (S2).
+ * Relays messages from content scripts to popup UI.
+ * Used for voice command confirmations and progress updates.
  */
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+
   if (msg.action === 'voiceCommand' || msg.action === 'altProgress') {
-    // Broadcast to popup (if open). Popup-side listeners filter by sender.tab.
+
     chrome.runtime.sendMessage(msg).catch((e) => {
-      // S3: Only suppress the expected "popup is closed" error.
-      // Log anything unexpected.
-      const expected = [
+      const expectedErrors = [
         'Could not establish connection',
         'The message port closed',
         'No receiving end',
       ];
-      if (!expected.some(s => e.message?.includes(s))) {
-        console.error('[Accesify BG] Unexpected relay error:', e.message);
+
+      if (!expectedErrors.some(text => e.message?.includes(text))) {
+        console.error('[Accesify] Unexpected relay error:', e.message);
       }
     });
+
     sendResponse({ relayed: true });
   }
 
