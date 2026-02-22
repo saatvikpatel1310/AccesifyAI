@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accesify AI</title>
+  <!--
+    P5: Fonts self-hosted to avoid FOUT on popup open.
+    The Google Fonts links have been removed. DM Sans & DM Mono are loaded
+    via @font-face in popup.css pointing at bundled WOFF2 files, with a
+    system-font fallback stack so the UI is instantly readable either way.
+  -->
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+
+  <!-- A7: sr-only h1 establishes correct heading hierarchy (h1 → h2s below) -->
+  <h1 class="sr-only">Accesify AI Accessibility Tools</h1>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-brand">
+      <div class="brand-icon" aria-hidden="true">
+        <!-- A12: aria-hidden on all decorative SVGs -->
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="3" fill="currentColor"/>
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" fill="currentColor" opacity="0.4"/>
+          <path d="M12 6v2M12 16v2M6 12H4M20 12h-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">Accesify</span>
+        <span class="brand-tag">AI</span>
+      </div>
+    </div>
+    <!-- A10: aria-live region so screen readers announce status changes -->
+    <div class="header-status" aria-live="polite" aria-atomic="true">
+      <div class="status-dot" id="statusDot" aria-hidden="true"></div>
+      <span class="status-label" id="statusLabel">Ready</span>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <!-- ── Reading Mode ── -->
+    <section class="section" id="section-reading">
+      <div class="section-header">
+        <div class="section-icon reading-icon" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 6.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM12 2C8.14 2 5 5.14 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.86-3.14-7-7-7z" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="section-info">
+          <h2 class="section-title">Reading Mode</h2>
+          <p class="section-desc" id="readingModeDesc">Remove clutter, center text</p>
+        </div>
+        <!--
+          A2: Toggle label wraps a sr-only text node so the checkbox has a
+          meaningful accessible name independent of aria-label on the label itself.
+          A5: aria-expanded reflects collapsible panel state (managed by popup.js).
+        -->
+        <label class="toggle">
+          <input type="checkbox" id="readingMode"
+                 aria-describedby="readingModeDesc"
+                 aria-expanded="false"
+                 aria-controls="readingControls" />
+          <span class="toggle-track" aria-hidden="true">
+            <span class="toggle-thumb"></span>
+          </span>
+          <span class="sr-only">Enable Reading Mode</span>
+        </label>
+      </div>
+      <!-- A5: aria-hidden="true" initial state; removed when panel opens -->
+      <div class="section-controls" id="readingControls" aria-hidden="true">
+        <div class="control-row">
+          <!-- A1: <label for="…"> properly associates label with range input -->
+          <label for="fontSize" class="control-label">Font Size</label>
+          <div class="slider-group">
+            <input type="range" class="slider" id="fontSize"
+                   min="14" max="28" value="18"
+                   aria-valuemin="14" aria-valuemax="28"
+                   aria-valuenow="18" aria-valuetext="18 pixels" />
+            <span class="slider-val" id="fontSizeVal" aria-hidden="true">18px</span>
+          </div>
+        </div>
+        <div class="control-row">
+          <label for="lineHeight" class="control-label">Line Height</label>
+          <div class="slider-group">
+            <input type="range" class="slider" id="lineHeight"
+                   min="140" max="220" value="180" step="10"
+                   aria-valuemin="1.4" aria-valuemax="2.2"
+                   aria-valuenow="1.8" aria-valuetext="1.8" />
+            <span class="slider-val" id="lineHeightVal" aria-hidden="true">1.8</span>
+          </div>
+        </div>
+        <div class="control-row">
+          <label for="readingLine" class="control-label">Reading Line</label>
+          <label class="toggle-sm">
+            <input type="checkbox" id="readingLine" />
+            <span class="toggle-track-sm" aria-hidden="true"><span class="toggle-thumb-sm"></span></span>
+            <span class="sr-only">Enable Reading Line Highlight</span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider" role="separator"></div>
+
+    <!-- ── Dyslexia Mode ── -->
+    <section class="section" id="section-dyslexia">
+      <div class="section-header">
+        <div class="section-icon dyslexia-icon" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 6h16M4 10h16M4 14h10M4 18h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="section-info">
+          <h2 class="section-title">Dyslexia Mode</h2>
+          <p class="section-desc" id="dyslexiaModeDesc">Lexend font, better spacing</p>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="dyslexiaMode"
+                 aria-describedby="dyslexiaModeDesc"
+                 aria-expanded="false"
+                 aria-controls="dyslexiaControls" />
+          <span class="toggle-track" aria-hidden="true">
+            <span class="toggle-thumb"></span>
+          </span>
+          <span class="sr-only">Enable Dyslexia Mode</span>
+        </label>
+      </div>
+      <div class="section-controls" id="dyslexiaControls" aria-hidden="true">
+        <!--
+          A4: Font buttons use aria-pressed to expose selection state to screen readers.
+          Initial values set here; popup.js keeps them in sync.
+        -->
+        <div class="chip-group" role="group" aria-label="Dyslexia font selection">
+          <button class="chip active" data-font="lexend" id="fontLexend" aria-pressed="true">Lexend</button>
+          <button class="chip" data-font="opendyslexic" id="fontOpenDyslexic" aria-pressed="false">OpenDyslexic</button>
+          <button class="chip" data-font="atkinson" id="fontAtkinson" aria-pressed="false">Atkinson</button>
+        </div>
+        <div class="control-row">
+          <label for="letterSpacing" class="control-label">Letter Spacing</label>
+          <div class="slider-group">
+            <input type="range" class="slider" id="letterSpacing"
+                   min="0" max="6" value="2" step="1"
+                   aria-valuemin="0" aria-valuemax="6"
+                   aria-valuenow="2" aria-valuetext="2 pixels" />
+            <span class="slider-val" id="letterSpacingVal" aria-hidden="true">2px</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider" role="separator"></div>
+
+    <!-- ── Vision Filters ── -->
+    <section class="section" id="section-vision">
+      <div class="section-header">
+        <div class="section-icon vision-icon" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5z" fill="currentColor" opacity="0.3"/>
+            <circle cx="12" cy="12" r="3" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="section-info">
+          <h2 class="section-title">Vision Filters</h2>
+          <p class="section-desc">Contrast, dark, colorblind</p>
+        </div>
+      </div>
+      <!--
+        A3: radiogroup + role="radio" + aria-checked pattern so screen readers
+        correctly announce "Normal, selected, 1 of 6" etc.
+        popup.js updates aria-checked on every filter click.
+      -->
+      <div class="filter-grid" role="radiogroup" aria-label="Vision filter selection">
+        <button class="filter-btn" id="filterNone" data-filter="none" role="radio" aria-checked="true">
+          <span class="filter-preview none-preview" aria-hidden="true"></span>
+          <span>Normal</span>
+        </button>
+        <button class="filter-btn" id="filterDark" data-filter="dark" role="radio" aria-checked="false">
+          <span class="filter-preview dark-preview" aria-hidden="true"></span>
+          <span>Dark</span>
+        </button>
+        <button class="filter-btn" id="filterContrast" data-filter="contrast" role="radio" aria-checked="false">
+          <span class="filter-preview contrast-preview" aria-hidden="true"></span>
+          <span>High Contrast</span>
+        </button>
+        <button class="filter-btn" id="filterProtanopia" data-filter="protanopia" role="radio" aria-checked="false">
+          <span class="filter-preview protan-preview" aria-hidden="true"></span>
+          <span>Protanopia</span>
+        </button>
+        <button class="filter-btn" id="filterDeuteranopia" data-filter="deuteranopia" role="radio" aria-checked="false">
+          <span class="filter-preview deuter-preview" aria-hidden="true"></span>
+          <span>Deuteranopia</span>
+        </button>
+        <button class="filter-btn" id="filterTritanopia" data-filter="tritanopia" role="radio" aria-checked="false">
+          <span class="filter-preview tritan-preview" aria-hidden="true"></span>
+          <span>Tritanopia</span>
+        </button>
+      </div>
+    </section>
+
+    <div class="divider" role="separator"></div>
+
+    <!-- ── Voice Navigation ── -->
+    <section class="section" id="section-voice">
+      <div class="section-header">
+        <div class="section-icon voice-icon" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" fill="currentColor"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="section-info">
+          <h2 class="section-title">Voice Navigation</h2>
+          <p class="section-desc" id="voiceNavDesc">Speech commands for hands-free</p>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="voiceNav"
+                 aria-describedby="voiceNavDesc"
+                 aria-expanded="false"
+                 aria-controls="voiceControls" />
+          <span class="toggle-track" aria-hidden="true">
+            <span class="toggle-thumb"></span>
+          </span>
+          <span class="sr-only">Enable Voice Navigation</span>
+        </label>
+      </div>
+      <div class="section-controls" id="voiceControls" aria-hidden="true">
+        <!-- aria-live="polite" announces voice status changes to screen readers -->
+        <div class="voice-status" id="voiceStatus" aria-live="polite" aria-atomic="true">
+          <div class="voice-waves" id="voiceWaves" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <span class="voice-status-text" id="voiceStatusText">Listening…</span>
+        </div>
+        <div class="voice-last" id="voiceLast" aria-live="polite">
+          <span class="voice-last-label">Last command:</span>
+          <span class="voice-last-cmd" id="voiceLastCmd">—</span>
+        </div>
+        <div class="commands-list">
+          <p class="commands-title" id="commandsListLabel">Available commands</p>
+          <div class="command-chips" aria-labelledby="commandsListLabel">
+            <span class="cmd-chip">"scroll down"</span>
+            <span class="cmd-chip">"scroll up"</span>
+            <span class="cmd-chip">"read page"</span>
+            <span class="cmd-chip">"click [name]"</span>
+            <span class="cmd-chip">"stop reading"</span>
+            <span class="cmd-chip">"go back"</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider" role="separator"></div>
+
+    <!-- ── AI Alt Text ── -->
+    <section class="section" id="section-alttext">
+      <div class="section-header">
+        <div class="section-icon ai-icon" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="3" y="3" width="18" height="14" rx="2" fill="currentColor" opacity="0.3"/>
+            <path d="M3 17l4-4 3 3 4-5 4 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="8" cy="8" r="1.5" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="section-info">
+          <h2 class="section-title">AI Alt Text</h2>
+          <p class="section-desc">Generate descriptions for images</p>
+        </div>
+      </div>
+      <div class="alt-actions">
+        <button class="btn btn-primary" id="scanImages">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span class="btn-label">Scan Page</span>
+        </button>
+        <button class="btn btn-secondary" id="generateAlt" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>
+          </svg>
+          Generate All
+        </button>
+      </div>
+      <!-- A11: role="status" + aria-live so progress updates are announced -->
+      <div class="alt-results" id="altResults">
+        <div class="alt-empty" id="altEmpty">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="3" y="3" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M3 17l4-4 3 3 4-5 4 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <p>Scan the page to find images without alt text</p>
+        </div>
+        <div id="altStats" class="alt-stats hidden" aria-live="polite" aria-atomic="true">
+          <div class="stat-item">
+            <span class="stat-num" id="statTotal">0</span>
+            <span class="stat-label">Total</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num accent" id="statMissing">0</span>
+            <span class="stat-label">Missing Alt</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num success" id="statFixed">0</span>
+            <span class="stat-label">Fixed</span>
+          </div>
+        </div>
+        <div id="altProgress" class="alt-progress hidden" role="status" aria-live="polite" aria-atomic="true">
+          <div class="progress-bar"
+               role="progressbar"
+               aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+               id="progressBar"
+               aria-label="Image alt text generation progress">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <span class="progress-text" id="progressText">Processing…</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <!--
+      AR3: Replaced window.confirm() (unreliable in extension popups) with a
+      two-click confirmation pattern managed entirely in popup.js.
+    -->
+    <button class="footer-btn" id="resetAll">Reset All</button>
+    <span class="footer-version">v1.0.1</span>
+    <button class="footer-btn" id="helpBtn">Help</button>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

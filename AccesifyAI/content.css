@@ -1,0 +1,9 @@
+/* =============================================
+   Accesify AI — Content CSS
+   Injected alongside content.js
+   (Styles are mostly managed via injected <style> tags,
+    but this file handles baseline resets if needed.)
+   ============================================= */
+
+/* Nothing global here — all styles are dynamically injected
+   by content.js to avoid polluting page styles. */
