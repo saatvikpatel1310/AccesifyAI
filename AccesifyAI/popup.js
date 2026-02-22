@@ -1,30 +1,7 @@
-/**
- * Accesify AI — Popup Controller (v1.0.1 — post-audit fixes)
- *
- * Fixes applied:
- *  B1  — Race condition in saveSettings() → in-memory cache + single write
- *  B2  — Scan button innerHTML trashed → data-loading CSS pattern
- *  B7  — Uncancellable 300ms-per-image loop → single batch message
- *  AR2 — Excessive storage writes → debounced saves on sliders
- *  AR3 — window.confirm() → two-click inline confirmation
- *  AR4 — No feedback on unreachable tab → status error message
- *  A1  — aria-valuenow/valuetext kept in sync on slider input
- *  A3  — aria-checked toggled on vision filter buttons
- *  A4  — aria-pressed toggled on font chip buttons
- *  A5  — aria-expanded + aria-hidden toggled on collapsible panels
- *  A10 — Status in aria-live region (handled in HTML; JS writes textContent)
- *  A11 — progressBar aria-valuenow updated in generation loop
- *  S2  — Voice message listener validates sender is background script
- */
 
 'use strict';
 
-/* ═══════════════════════════════════════════════
-   SETTINGS CACHE  (fixes B1, AR2)
-   Keep an in-memory object as the single source of truth.
-   All writes go through saveSettings() which merges the patch into the
-   cache and does one chrome.storage.local.set() — no read-then-write race.
-═══════════════════════════════════════════════ */
+
 
 let _settings = {};
 
@@ -39,7 +16,7 @@ function saveSettings(patch) {
   chrome.storage.local.set({ accesify: _settings });
 }
 
-/* ─── Debounce helper (fixes AR2 for slider writes) ─── */
+/* ─── Debounce helper ─── */
 function debounce(fn, ms) {
   let timer;
   return (...args) => {
@@ -54,8 +31,6 @@ function debounce(fn, ms) {
 
 /**
  * Send a message to the active tab's content script.
- *
- * MV3 FIX: Chrome only auto-injects content scripts into tabs opened AFTER
  * the extension is installed. Tabs that were already open get nothing.
  * When the first send fails with "Receiving end does not exist", we
  * programmatically inject ai.js + content.js via chrome.scripting, then
@@ -172,7 +147,7 @@ function setStatus(label, state = 'ready') {
 }
 
 /* ═══════════════════════════════════════════════
-   COLLAPSIBLE PANELS  (fixes A5)
+   COLLAPSIBLE PANELS  
    Manages aria-expanded on the checkbox and aria-hidden on the panel.
 ═══════════════════════════════════════════════ */
 
@@ -217,8 +192,6 @@ function initReading(settings) {
     setStatus(on ? 'Reading mode on' : 'Ready');
   });
 
-  // A1: Update aria-valuenow/valuetext on input for screen reader feedback
-  // P3: Debounce the expensive sendToTab call; keep visual feedback instant
   const debouncedSendReading = debounce(() => {
     if (els.readingMode.checked) sendToTab({ action: 'updateReading', options: getReadingOptions() });
   }, 200);
@@ -276,7 +249,6 @@ function initDyslexia(settings) {
   els.dyslexiaMode.checked = enabled;
   if (enabled) openControls(els.dyslexiaControls, els.dyslexiaMode);
 
-  // A4: Sync aria-pressed on initial render
   document.querySelectorAll('.chip[data-font]').forEach((chip) => {
     const isActive = chip.dataset.font === activeFont;
     chip.classList.toggle('active', isActive);
@@ -298,7 +270,6 @@ function initDyslexia(settings) {
     setStatus(on ? 'Dyslexia mode on' : 'Ready');
   });
 
-  // A4: Toggle aria-pressed when font chip is clicked
   document.querySelectorAll('.chip[data-font]').forEach((chip) => {
     chip.addEventListener('click', () => {
       document.querySelectorAll('.chip[data-font]').forEach((c) => {
@@ -343,7 +314,6 @@ let activeFilter = 'none';
 function initVision(settings) {
   activeFilter = settings.visionFilter ?? 'none';
 
-  // A3: Set initial aria-checked state
   document.querySelectorAll('.filter-btn').forEach((btn) => {
     btn.setAttribute('aria-checked', String(btn.dataset.filter === activeFilter));
     if (btn.dataset.filter === activeFilter) btn.classList.add('active');
@@ -351,7 +321,6 @@ function initVision(settings) {
 
   document.querySelectorAll('.filter-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
-      // A3: Toggle aria-checked on all filter buttons
       document.querySelectorAll('.filter-btn').forEach((b) => {
         b.classList.remove('active');
         b.setAttribute('aria-checked', 'false');
@@ -400,7 +369,7 @@ function initVoice(settings) {
 }
 
 /**
- * S2: Validate that the voiceCommand message originated from the background
+ * Validate that the voiceCommand message originated from the background
  * service worker (no tab / frame ID) before updating the display.
  */
 chrome.runtime.onMessage.addListener((msg, sender) => {
@@ -413,7 +382,7 @@ chrome.runtime.onMessage.addListener((msg, sender) => {
 });
 
 /* ═══════════════════════════════════════════════
-   5. AI ALT TEXT  (fixes B2, B7, A11)
+   5. AI ALT TEXT 
 ═══════════════════════════════════════════════ */
 
 let scanData = null;
@@ -424,8 +393,7 @@ function initAltText() {
   els.scanImages.addEventListener('click', async () => {
     setStatus('Scanning…', 'busy');
 
-    // B2: Use data-loading CSS pattern instead of replacing innerHTML,
-    // so the SVG icon is never destroyed.
+
     els.scanImages.disabled = true;
     els.scanImages.setAttribute('data-loading', 'true');
 
@@ -457,7 +425,7 @@ function initAltText() {
     const total = scanData.missing;
 
     /**
-     * B7: Send a single batch message to content.js instead of one message
+     * Send a single batch message to content.js instead of one message
      * per image with a 300ms delay. Content.js processes all images and sends
      * back progress updates via runtime.sendMessage.
      * This also eliminates the "popup closed mid-loop" hazard.
@@ -480,7 +448,6 @@ chrome.runtime.onMessage.addListener((msg, sender) => {
     const pct = Math.round((_generationDone / _generationTotal) * 100);
 
     els.progressFill.style.width = `${pct}%`;
-    // A11: Keep aria-valuenow in sync for screen readers
     els.progressBar?.setAttribute('aria-valuenow', pct);
     els.progressText.textContent = `Processing image ${msg.done} of ${_generationTotal}…`;
 
@@ -506,12 +473,12 @@ function updateAltStats(data) {
 }
 
 /* ═══════════════════════════════════════════════
-   FOOTER  (fixes AR3)
+   FOOTER 
 ═══════════════════════════════════════════════ */
 
 function initFooter() {
   /**
-   * AR3: Replace window.confirm() (deprecated/unreliable in extension popups)
+   * Replace window.confirm() (deprecated/unreliable in extension popups)
    * with a two-click inline confirmation. First click shows warning text;
    * second click within 3 seconds executes the reset.
    */
@@ -538,9 +505,6 @@ function initFooter() {
     }
   });
 
-  els.helpBtn.addEventListener('click', () => {
-    chrome.tabs.create({ url: 'https://github.com/accesify-ai/help' });
-  });
 }
 
 /* ═══════════════════════════════════════════════
@@ -558,7 +522,6 @@ async function init() {
   initFooter();
 
   // Re-apply any active modes to the content script on popup re-open
-  // AR4: sendToTab now reports errors via setStatus, so no extra check needed
   if (settings.readingMode)  sendToTab({ action: 'setReadingMode',  enabled: true, options: getReadingOptions() });
   if (settings.dyslexiaMode) sendToTab({ action: 'setDyslexiaMode', enabled: true, options: getDyslexiaOptions() });
   if (settings.visionFilter && settings.visionFilter !== 'none') {
