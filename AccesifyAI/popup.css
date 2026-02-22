@@ -754,11 +754,7 @@ body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 .section:nth-child(9)  { animation-delay: 0.25s; }
 .footer  { animation: fade-up 0.4s var(--ease-out) 0.3s both; }
 
-/* =============================================
-   FIXES APPLIED (audit round 2)
-   ============================================= */
 
-/* A2, A7: Screen-reader-only utility class */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -771,9 +767,7 @@ body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
   border: 0;
 }
 
-/* P5: System font fallback — DM Sans was loaded from Google Fonts which
-   caused FOUT on popup open. System fonts render immediately. Bundle
-   WOFF2 files for full DM Sans if desired; fallback stack looks great. */
+
 body {
   font-family: 'DM Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
                'Segoe UI', sans-serif;
@@ -784,7 +778,6 @@ body {
                monospace;
 }
 
-/* B2: Loading state for scan button — avoids replacing innerHTML */
 .btn[data-loading] .btn-label::after {
   content: '…';
 }
@@ -792,14 +785,12 @@ body {
   opacity: 0.4;
 }
 
-/* AR3: Reset-confirm state styling */
 #resetAll[data-confirming] {
   color: var(--accent);
   border-color: rgba(255, 107, 157, 0.4);
 }
 
-/* A9: Respect prefers-reduced-motion — disables all animations and
-   transitions for users with vestibular/motion sensitivity settings. */
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -810,12 +801,10 @@ body {
     scroll-behavior: auto !important;
   }
 
-  /* Keep the status pulse but make it a simple opacity toggle */
   .status-dot {
     animation: none !important;
   }
 
-  /* Voice waves should be static when motion is reduced */
   .voice-waves span {
     animation: none !important;
     height: 8px !important;
